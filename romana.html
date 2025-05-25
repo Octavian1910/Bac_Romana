@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz literar BAC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    .question {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+    }
+    select, input[type="number"], button {
+      margin-top: 10px;
+      padding: 5px;
+      font-size: 1em;
+    }
+    #result {
+      font-weight: bold;
+      color: green;
+    }
+    .corect {
+      background-color: #d4edda;
+    }
+    .gresit {
+      background-color: #f8d7da;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Asociază opera cu autorul, curentele și anul publicării</h1>
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">Trimite răspunsurile</button>
+  <div id="result"></div>
+
+ <!-- doar înlocuiește scriptul JS cu cel de mai jos -->
+
+<script>
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+const opere = [
+  { titlu: "Povestea lui Harap-Alb", autor: "Ion Creangă", curente: ["Basm cult"], an: 1877, rezumat: "Un fiu de crai trece prin probe inițiatice pentru a deveni vrednic de împărăție." },
+  { titlu: "Moara cu noroc", autor: "Ioan Slavici", curente: ["Nuvelă psihologică", "Realist","Obiectiv"], an: 1881, rezumat: "Ghiță devine victima lăcomiei și sfârșește tragic, pierzând tot ce iubea." },
+  { titlu: "O scrisoare pierdută", autor: "I.L. Caragiale", curente: ["Comedie", "Realist"], an: 1884, rezumat: "O farsă politică în care o scrisoare de dragoste pierdută stârnește haos în alegeri." },
+  { titlu: "Luceafărul", autor: "Mihai Eminescu", curente: ["Romantism"], an: 1883, rezumat: "O poveste de iubire imposibilă dintre o ființă superioară și o muritoare." },
+  { titlu: "Testament", autor: "Tudor Arghezi", curente: ["Modernism", "Literatură testamentară"], an: 1927, rezumat: "Poetul își afirmă crezul artistic și noblețea cuvântului." },
+  { titlu: "Ion", autor: "Liviu Rebreanu", curente: ["Obiectiv", "Realist", "Interbelic"], an: 1920, rezumat: "Ion sacrifică iubirea pentru pământ și ajunge să trăiască o dramă a posesiunii." },
+  { titlu: "Ultima noapte de dragoste, întâia noapte de război", autor: "Camil Petrescu", curente: ["Roman subiectiv", "Psihologic", "Al experienței", "Modern", "Interbelic", "Realist"], an: 1930, rezumat: "Romanul urmărește drama intelectualului Ștefan Gheorghidiu, prins între dragoste și experiența frontului." },
+  { titlu: "Baltagul", autor: "Mihail Sadoveanu", curente: ["Roman tradițional", "Realist", "Mitic", "Simbolic", "Interbelic", "Obiectiv"], an: 1930, rezumat: "Vitoria Lipan își caută soțul dispărut și înfruntă greutăți pentru a face dreptate." },
+  { titlu: "Enigma Otiliei", autor: "George Călinescu", curente: ["Realist", "Balzacian", "Interbelic", "Obiectiv"], an: 1938, rezumat: "Felix Sima pătrunde într-o lume a ipocriziei și intereselor familiale, fiind atras de misterioasa Otilia." },
+  { titlu: "Moromeții", autor: "Marin Preda", curente: ["Roman postbelic", "Realist", "Obiectiv"], an: 1955, rezumat: "Ilie Moromete încearcă să-și păstreze echilibrul într-o societate rurală în schimbare." },
+  { titlu: "Eu nu strivesc corola de minuni a lumii", autor: "Lucian Blaga", curente: ["Modernism", "Cunoaștere poetică"], an: 1919, rezumat: "Poetul propune o cunoaștere poetică a lumii, păstrând misterul existenței." },
+  { titlu: "Plumb", autor: "George Bacovia", curente: ["Simbolism"], an: 1916, rezumat: "Poetul exprimă stări sufletești apăsătoare într-un peisaj funebru și rece." },
+  { titlu: "Iona", autor: "Marin Sorescu", curente: ["Parabolă dramatică"], an: 1968, rezumat: "Piesa simbolizează drama omului singur și a căutării de sine, printr-o reinterpretare modernă a mitului lui Iona." },
+  { titlu: "Riga Crypto și Lapona Enigel", autor: "Ion Barbu", curente: ["Modernism", "Ermetism", "Simbolism"], an: 1930, rezumat: "Poezia este o alegorie a incompatibilității dintre două lumi și concepții." },
+  { titlu: "Leoaică tânără, iubirea", autor: "Nichita Stănescu", curente: ["Neomodernism"], an: 1964, rezumat: "Poezia explorează iubirea ca forță transformatoare, în limbaj poetic original." }
+];
+
+
+  const autori = [...new Set(opere.map(o => o.autor))].sort();
+  const curente = [...new Set(opere.flatMap(o => o.curente))].sort();
+
+  const quizContainer = document.getElementById("quiz");
+  opere.sort((a, b) => a.an - b.an); // sortare după an
+
+  opere.forEach((opera, index) => {
+    quizContainer.innerHTML += `
+      <div class="question" id="question-${index}">
+        <p><strong>${index + 1}. ${opera.titlu}</strong></p>
+        <label>Autor:
+          <select id="autor-${index}">
+            <option value="">Alege autorul</option>
+            ${autori.map(autor => `<option value="${autor}">${autor}</option>`).join('')}
+          </select>
+        </label>
+        <br>
+        <label>An publicare:
+          <input type="number" id="an-${index}" placeholder="Ex: 1930">
+          <span id="an-corect-${index}" style="margin-left:10px; color:red; display:none;"></span>
+        </label>
+        <div class="checkbox-group">
+          ${curente.map(curent => `
+            <label>
+              <input type="checkbox" name="curent-${index}" value="${curent}"> ${curent}
+            </label>
+          `).join('')}
+        </div>
+        <button onclick="afiseazaRezumat(${index})">Vezi rezumat</button>
+        <p id="rezumat-${index}" style="display:none; margin-top:10px; font-style:italic;">${opera.rezumat}</p>
+      </div>
+    `;
+  });
+
+  function afiseazaRezumat(index) {
+    const par = document.getElementById(`rezumat-${index}`);
+    par.style.display = par.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function submitQuiz() {
+    let corecte = 0;
+    opere.forEach((opera, index) => {
+      const autor = document.getElementById(`autor-${index}`).value;
+      const anul = parseInt(document.getElementById(`an-${index}`).value);
+      const corectAn = opera.an;
+      const anFeedback = document.getElementById(`an-corect-${index}`);
+
+      const checkedBoxes = document.querySelectorAll(`input[name='curent-${index}']:checked`);
+      const selectedCurente = Array.from(checkedBoxes).map(cb => cb.value);
+      const questionDiv = document.getElementById(`question-${index}`);
+
+      const autorCorect = autor === opera.autor;
+      const anCorect = anul === corectAn;
+      const curenteCorecte = selectedCurente.length === opera.curente.length && selectedCurente.every(c => opera.curente.includes(c));
+
+      if (!anCorect) {
+        anFeedback.style.display = 'inline';
+        anFeedback.textContent = `(Corect: ${corectAn})`;
+      } else {
+        anFeedback.style.display = 'none';
+      }
+
+      if (autorCorect && anCorect && curenteCorecte) {
+        questionDiv.classList.remove("gresit");
+        questionDiv.classList.add("corect");
+        corecte++;
+      } else {
+        questionDiv.classList.remove("corect");
+        questionDiv.classList.add("gresit");
+      }
+    });
+
+    document.getElementById("result").textContent = `Ai răspuns corect la ${corecte} din ${opere.length} opere.`;
+  }
+</script>
+
+</body>
+</html>
+
+
+
